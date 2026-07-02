@@ -83,7 +83,7 @@ npm run db:migrate
 npm run dev
 ```
 
-App läuft dann unter [http://localhost:3000](http://localhost:3000).
+App läuft dann unter [http://localhost:3877](http://localhost:3877).
 
 ### Jira Cloud
 

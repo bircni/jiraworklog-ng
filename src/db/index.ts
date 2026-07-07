@@ -21,8 +21,11 @@ sqlite.pragma("busy_timeout = 10000");
 
 export const db = drizzle(sqlite, { schema, casing: "snake_case" });
 
-// Apply pending migrations on startup so a fresh checkout just works.
-const migrationsFolder = resolve(process.cwd(), "drizzle");
+// Apply pending migrations on startup so a fresh checkout just works. In a
+// packaged Electron build the process cwd is not the project root, so the
+// migrations folder can be pointed at the bundled copy via JWL_MIGRATIONS_DIR.
+const migrationsFolder =
+  process.env.JWL_MIGRATIONS_DIR ?? resolve(process.cwd(), "drizzle");
 if (existsSync(migrationsFolder)) {
   migrate(db, { migrationsFolder });
 }

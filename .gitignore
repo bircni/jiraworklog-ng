@@ -3,6 +3,8 @@
 /out
 /build
 /data
+/release
+/dist-electron
 *.tsbuildinfo
 next-env.d.ts
 .env*

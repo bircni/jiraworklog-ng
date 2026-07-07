@@ -71,6 +71,25 @@ export function EinstellungenForm({ initial }: { initial: Initial }) {
     document.documentElement.dataset.theme = themeMode;
   }, [themeMode]);
 
+  // Desktop (Electron) integration: only available when running in the app.
+  const [isElectron, setIsElectron] = useState(false);
+  const [autoLaunch, setAutoLaunch] = useState(false);
+
+  useEffect(() => {
+    const bridge = window.electron;
+    if (!bridge) return;
+    bridge.getAutoLaunch().then((enabled) => {
+      setIsElectron(true);
+      setAutoLaunch(enabled);
+    });
+  }, []);
+
+  async function toggleAutoLaunch(next: boolean) {
+    const bridge = window.electron;
+    if (!bridge) return;
+    setAutoLaunch(await bridge.setAutoLaunch(next));
+  }
+
   const [saveStatus, setSaveStatus] = useState<{
     tone: "ok" | "err";
     msg: string;
@@ -372,6 +391,25 @@ export function EinstellungenForm({ initial }: { initial: Initial }) {
           dauerhaft übernommen.
         </div>
       </Section>
+
+      {isElectron && (
+        <Section title="Desktop">
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={autoLaunch}
+              onChange={(e) => toggleAutoLaunch(e.target.checked)}
+            />
+            <span className="text-[13px]">
+              JiraWorklog automatisch beim Windows-Anmelden starten
+            </span>
+          </label>
+          <div className="text-[12px]" style={{ color: "var(--text-3)" }}>
+            Die App startet minimiert im System-Tray. Diese Einstellung wird
+            sofort übernommen.
+          </div>
+        </Section>
+      )}
 
       <Section title="Jira-Anbindung">
         <Field label="Jira-URL">

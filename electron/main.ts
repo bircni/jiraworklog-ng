@@ -102,9 +102,7 @@ function apiRequest(
         let body = "";
         res.setEncoding("utf8");
         res.on("data", (c) => (body += c));
-        res.on("end", () =>
-          resolve({ status: res.statusCode ?? 0, body }),
-        );
+        res.on("end", () => resolve({ status: res.statusCode ?? 0, body }));
       },
     );
     req.on("error", reject);
@@ -200,11 +198,27 @@ function createWindow(): void {
       preload: join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
+      // Keep the live timer's setInterval ticking while the window is hidden in
+      // the tray; Chromium otherwise throttles background timers heavily.
+      backgroundThrottling: false,
     },
   });
 
   mainWindow.once("ready-to-show", () => mainWindow?.show());
   mainWindow.loadURL(`http://${HOST}:${appPort}/`);
+
+  mainWindow.webContents.on(
+    "console-message",
+    (_e, level, message, line, sourceId) => {
+      // Only surface warnings/errors to keep the log readable.
+      if (level >= 2) {
+        log(`renderer [${level}] ${message} (${sourceId}:${line})`);
+      }
+    },
+  );
+  mainWindow.webContents.on("did-fail-load", (_e, code, desc, url) => {
+    log(`renderer did-fail-load ${code} ${desc} ${url}`);
+  });
 
   // Closing the window hides to tray instead of quitting; the timer keeps
   // running. A real quit only happens via the tray's "Beenden" action.
@@ -259,7 +273,9 @@ function buildTrayMenu(): void {
       click: () => void stopTimerFromTray(),
     },
     {
-      label: mainWindow?.isVisible() ? "Fenster ausblenden" : "Fenster anzeigen",
+      label: mainWindow?.isVisible()
+        ? "Fenster ausblenden"
+        : "Fenster anzeigen",
       click: () => {
         if (mainWindow?.isVisible()) {
           mainWindow.hide();
@@ -340,7 +356,9 @@ if (!app.requestSingleInstanceLock()) {
 
   app.whenReady().then(async () => {
     try {
-      log(`Ready. packaged=${app.isPackaged} resources=${process.resourcesPath}`);
+      log(
+        `Ready. packaged=${app.isPackaged} resources=${process.resourcesPath}`,
+      );
       ipcMain.handle("auto-launch:get", () => getAutoLaunch());
       ipcMain.handle("auto-launch:set", (_e, enabled: boolean) =>
         setAutoLaunch(Boolean(enabled)),

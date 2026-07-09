@@ -13,12 +13,12 @@ import {
   ipcMain,
   type MenuItemConstructorOptions,
 } from "electron";
+import { IPC_SECRET_HEADER, type TimerStatus } from "./ipc-contract";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const DEV = !app.isPackaged;
 const HOST = "127.0.0.1";
 const DEV_PORT = 3877;
-const IPC_SECRET_HEADER = "x-jwl-secret";
 const STATUS_POLL_MS = 1000;
 
 /** Appends a diagnostic line to userData/main.log (GUI apps have no console). */
@@ -47,11 +47,8 @@ let pollTimer: NodeJS.Timeout | null = null;
 let appPort = DEV_PORT;
 let isQuitting = false;
 
-type TimerStatus =
-  | { running: false }
-  | { running: true; description: string; effectiveSeconds: number };
-
 let lastStatus: TimerStatus = { running: false };
+let lastTrayKey: string | null = null;
 
 // ── Paths ────────────────────────────────────────────────────────────────────
 function assetsDir(): string {
@@ -232,6 +229,10 @@ function createWindow(): void {
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
+
+  // Keep the tray's "show/hide window" label in sync with the window state.
+  mainWindow.on("show", () => updateTray());
+  mainWindow.on("hide", () => updateTray());
 }
 
 function showWindow(): void {
@@ -254,7 +255,29 @@ function formatElapsed(totalSeconds: number): string {
   return hh > 0 ? `${hh}:${pad(mm)}:${pad(ss)}` : `${mm}:${pad(ss)}`;
 }
 
-function buildTrayMenu(): void {
+/** The fields the tray's menu, tooltip and icon are derived from. */
+function trayRenderKey(): string {
+  const visible = mainWindow?.isVisible() ? "1" : "0";
+  return lastStatus.running
+    ? `run|${lastStatus.effectiveSeconds}|${lastStatus.description}|${visible}`
+    : `idle|${visible}`;
+}
+
+/**
+ * Rebuilds the tray only when something it displays actually changed, so an
+ * idle timer no longer churns the context menu every poll and a show/hide of
+ * the window immediately refreshes the toggle label (both are driven through
+ * this single entry point).
+ */
+function updateTray(): void {
+  if (!tray) return;
+  const key = trayRenderKey();
+  if (key === lastTrayKey) return;
+  lastTrayKey = key;
+  renderTray();
+}
+
+function renderTray(): void {
   if (!tray) return;
 
   const running = lastStatus.running;
@@ -306,7 +329,7 @@ function buildTrayMenu(): void {
 function createTray(): void {
   tray = new Tray(trayIcon(false));
   tray.on("click", () => showWindow());
-  buildTrayMenu();
+  updateTray();
 }
 
 async function refreshStatus(): Promise<void> {
@@ -318,7 +341,7 @@ async function refreshStatus(): Promise<void> {
   } catch {
     // Server not ready yet or transient error — keep the last known status.
   }
-  buildTrayMenu();
+  updateTray();
 }
 
 async function stopTimerFromTray(): Promise<void> {
@@ -326,7 +349,7 @@ async function stopTimerFromTray(): Promise<void> {
     const res = await apiRequest("POST", "/api/timer/stop");
     if (res.status === 200) {
       lastStatus = { running: false };
-      buildTrayMenu();
+      updateTray();
       mainWindow?.webContents.send("timer-stopped");
     }
   } catch {

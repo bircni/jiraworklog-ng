@@ -1,10 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
+import { IPC_SECRET_HEADER } from "../../electron/ipc-contract";
 
-/**
- * Header carrying the per-launch shared secret that the Electron main process
- * uses to authenticate its calls to the internal timer endpoints.
- */
-export const IPC_SECRET_HEADER = "x-jwl-secret";
+export type { TimerStatus } from "../../electron/ipc-contract";
 
 function safeEqual(a: string, b: string): boolean {
   const bufA = Buffer.from(a);

@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
   // here the HMR WebSocket upgrade is rejected and the client never hydrates.
   // Entries must be bare hostnames — full URLs never match.
   allowedDevOrigins: ["localhost", "127.0.0.1"],
+  logging: {
+    // The timer widget polls these routes every second; keep them out of the
+    // dev request log so they don't drown out everything else.
+    incomingRequests: {
+      ignore: [/\/api\/timer\//],
+    },
+  },
 };
 
 export default nextConfig;

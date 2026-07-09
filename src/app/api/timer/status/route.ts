@@ -1,5 +1,5 @@
 import { getRunningEntry, getSettings } from "@/db/queries";
-import { assertLocalSecret } from "@/lib/electron-ipc";
+import { assertLocalSecret, type TimerStatus } from "@/lib/electron-ipc";
 import { effectiveDurationSeconds, parseBreaks } from "@/lib/work-time";
 
 export const runtime = "nodejs";
@@ -15,7 +15,7 @@ export function GET(request: Request): Response {
 
   const running = getRunningEntry();
   if (!running) {
-    return Response.json({ running: false });
+    return Response.json({ running: false } satisfies TimerStatus);
   }
 
   const s = getSettings();
@@ -33,5 +33,5 @@ export function GET(request: Request): Response {
     isAllgemeines: running.isAllgemeines,
     category: running.category,
     effectiveSeconds,
-  });
+  } satisfies TimerStatus);
 }

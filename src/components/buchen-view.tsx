@@ -16,9 +16,9 @@ import {
   updateRunningCategory,
   updateRunningDescription,
   updateRunningStartedAt,
-  type DayBookingPlan,
   type SubmitResult,
 } from "@/lib/actions";
+import { type DayBookingPlan } from "@/lib/booking-plan";
 import {
   ALLGEMEINES_CATEGORIES,
   type AllgemeinesCategory,

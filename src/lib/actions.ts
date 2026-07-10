@@ -28,13 +28,8 @@ import {
   stripInternal,
   type DayBookingPlan,
   type InternalWorklog,
-  type PlannedWorklog,
   type SkippedEntry,
 } from "@/lib/booking-plan";
-
-// Keep the plan types importable from the actions module for existing
-// consumers (e.g. the Buchen view).
-export type { DayBookingPlan, PlannedWorklog, SkippedEntry };
 
 function nowIso(): string {
   return new Date().toISOString();

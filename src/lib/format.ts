@@ -31,7 +31,7 @@ export function formatSignedHmInput(totalMinutes: number): string {
 
 /** Parses `±hh:mm` (or `hh:mm`) into signed minutes; returns null on failure. */
 export function parseSignedHm(value: string): number | null {
-  const match = value.trim().match(/^([+-−])?(\d{1,3}):(\d{2})$/);
+  const match = value.trim().match(/^([-+−])?(\d{1,3}):(\d{2})$/);
   if (!match) return null;
   const sign = match[1] === "-" || match[1] === "−" ? -1 : 1;
   const h = Number(match[2]);

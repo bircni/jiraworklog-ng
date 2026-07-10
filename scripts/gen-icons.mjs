@@ -1,10 +1,13 @@
-// Generates the PNG assets used by the Electron shell (tray icons + app icon)
-// without any binary dependencies. Run via `npm run icons`.
+// Generates the tray PNG assets used by the Electron shell without any binary
+// dependencies. Run via `npm run icons`.
 //
 // Produces:
 //   assets/tray-idle.png     16x16 hollow clock ring (grey)  — timer stopped
 //   assets/tray-running.png  16x16 filled clock ring (green) — timer running
-//   assets/icon.png          256x256 app icon
+//
+// The app icon (assets/icon.png) is derived from assets/logo.png, not generated
+// here. Regenerate it with:
+//   sips -z 256 256 assets/logo.png --out assets/icon.png
 //
 // A minimal PNG encoder (truecolour + alpha, single IDAT) is implemented here.
 
@@ -142,23 +145,11 @@ function makeTray(color) {
   return encodePng(size, size, c.px);
 }
 
-function makeAppIcon() {
-  const size = 256;
-  const c = canvas(size);
-  const cx = 128;
-  const cy = 128;
-  ring(c, cx, cy, 120, 0, [37, 99, 235, 255]); // blue disc background
-  ring(c, cx, cy, 92, 74, [255, 255, 255, 255]); // white clock rim
-  hands(c, cx, cy, 62, [255, 255, 255, 255]);
-  return encodePng(size, size, c.px);
-}
-
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(resolve(OUT_DIR, "tray-idle.png"), makeTray([120, 120, 120, 255]));
 writeFileSync(
   resolve(OUT_DIR, "tray-running.png"),
   makeTray([34, 197, 94, 255]),
 );
-writeFileSync(resolve(OUT_DIR, "icon.png"), makeAppIcon());
 
-console.log(`Icons written to ${OUT_DIR}`);
+console.log(`Tray icons written to ${OUT_DIR}`);

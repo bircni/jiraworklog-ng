@@ -48,3 +48,17 @@ export async function expectWorklog(opts: {
     body: opts.body,
   });
 }
+
+export type ReceivedRequest = {
+  method: string;
+  path: string;
+  headers: Record<string, string | string[] | undefined>;
+  body: string;
+};
+
+/** All requests the mock has received since the last reset. */
+export async function receivedRequests(): Promise<ReceivedRequest[]> {
+  const res = await adminFetch("received", { method: "GET" });
+  const data = (await res.json()) as { received: ReceivedRequest[] };
+  return data.received;
+}

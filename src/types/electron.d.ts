@@ -20,5 +20,3 @@ declare global {
     electron?: ElectronBridge;
   }
 }
-
-export {};

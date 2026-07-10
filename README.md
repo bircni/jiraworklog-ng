@@ -74,13 +74,13 @@ Alles läuft **lokal** — kein Server, keine Cloud, keine externen Dienste auß
 
 ```bash
 # Abhängigkeiten installieren
-npm install
+pnpm install
 
 # Datenbank migrieren
-npm run db:migrate
+pnpm db:migrate
 
 # Dev-Server starten
-npm run dev
+pnpm dev
 ```
 
 App läuft dann unter [http://localhost:3877](http://localhost:3877).
